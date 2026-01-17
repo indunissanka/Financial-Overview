@@ -31,6 +31,7 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [useManualMode, setUseManualMode] = useState(false);
   const [category, setCategory] = useState<string>(Category.Shopping);
   const [amount, setAmount] = useState<string>('');
   const [merchant, setMerchant] = useState<string>('');
@@ -73,6 +74,12 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
       return;
     }
 
+    // Check if provider supports image analysis
+    if (aiProvider !== 'gemini' && aiProvider !== 'claude') {
+      setError(`❌ ${aiProvider} does not support image scanning. Please use Gemini or Claude in Settings → AI Settings.`);
+      return;
+    }
+
     const context = canvasRef.current.getContext('2d');
     if (!context) return;
 
@@ -109,6 +116,12 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
     // Check if AI provider is configured
     if (!aiConfig?.apiKey) {
       setError('⚠️ AI provider not configured. Please go to Settings → AI Settings and add an API key for Gemini or Claude.');
+      return;
+    }
+
+    // Check if provider supports image analysis
+    if (aiProvider !== 'gemini' && aiProvider !== 'claude') {
+      setError(`❌ ${aiProvider} does not support image scanning. Please use Gemini or Claude in Settings → AI Settings.`);
       return;
     }
 
@@ -301,14 +314,33 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
               )}
 
               {error && (
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-red-950/50 border border-red-700/50">
-                  <AlertCircle size={20} className="text-red-400" />
-                  <p className="text-red-200 text-sm">{error}</p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-4 rounded-lg bg-red-950/50 border border-red-700/50">
+                    <AlertCircle size={20} className="text-red-400" />
+                    <div>
+                      <p className="text-red-200 text-sm font-semibold">Scan Failed</p>
+                      <p className="text-red-300 text-xs mt-1">{error}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setUseManualMode(true);
+                      setError(null);
+                    }}
+                    className="w-full py-2 px-4 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-all text-sm"
+                  >
+                    💡 Use Manual Entry Instead
+                  </button>
                 </div>
               )}
 
               {/* Editable Fields */}
-              <div className="space-y-4">
+              {useManualMode && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-yellow-950/50 border border-yellow-700/50 rounded-lg">
+                    <p className="text-yellow-200 text-sm font-semibold">📝 Manual Entry Mode</p>
+                    <p className="text-yellow-300 text-xs mt-1">Please fill in the expense details below</p>
+                  </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-300 mb-1">
                     Amount ($)
@@ -404,6 +436,7 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
                   />
                 </div>
               </div>
+              )}
 
               {/* Action Buttons */}
               <div className="grid grid-cols-3 gap-3">
