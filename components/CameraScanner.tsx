@@ -281,8 +281,8 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
                 </div>
               )}
 
-              {/* Confidence Indicator */}
-              {scannedData && (
+              {/* Confidence Indicator - Only show if scanned successfully */}
+              {scannedData && !error && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-slate-300">Scan Confidence</span>
@@ -313,7 +313,8 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
                 </div>
               )}
 
-              {error && (
+              {/* Error Message with Manual Entry Option */}
+              {error && !useManualMode && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 p-4 rounded-lg bg-red-950/50 border border-red-700/50">
                     <AlertCircle size={20} className="text-red-400" />
@@ -323,10 +324,7 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
                     </div>
                   </div>
                   <button
-                    onClick={() => {
-                      setUseManualMode(true);
-                      setError(null);
-                    }}
+                    onClick={() => setUseManualMode(true)}
                     className="w-full py-2 px-4 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-all text-sm"
                   >
                     💡 Use Manual Entry Instead
@@ -334,13 +332,8 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
                 </div>
               )}
 
-              {/* Editable Fields */}
-              {useManualMode && (
-                <div className="space-y-4">
-                  <div className="p-4 bg-yellow-950/50 border border-yellow-700/50 rounded-lg">
-                    <p className="text-yellow-200 text-sm font-semibold">📝 Manual Entry Mode</p>
-                    <p className="text-yellow-300 text-xs mt-1">Please fill in the expense details below</p>
-                  </div>
+              {/* Editable Fields - Always show when in preview step */}
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-300 mb-1">
                     Amount ($)
@@ -436,7 +429,6 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
                   />
                 </div>
               </div>
-              )}
 
               {/* Action Buttons */}
               <div className="grid grid-cols-3 gap-3">

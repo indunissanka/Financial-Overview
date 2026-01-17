@@ -37,17 +37,15 @@ const extractWithGemini = async (
           {
             parts: [
               {
-                text: `Analyze this receipt/bill image and extract the following information in JSON format:
-{
-  "amount": total amount as number,
-  "merchant": store/company name,
-  "category": best category (Food, Transport, Shopping, Entertainment, Utilities, Health, Income, Others),
-  "date": date in YYYY-MM-DD format (if visible, otherwise today),
-  "items": array of purchased items,
-  "confidence": confidence level 0-100
-}
+                text: `Look at this receipt/bill image and tell me:
+1. The total amount (just the number)
+2. Store/merchant name
+3. Best category (Food, Transport, Shopping, Entertainment, Utilities, Health, Income, Others)
 
-Be precise with the amount. If currency symbol is present, extract just the number. Return ONLY valid JSON.`,
+Format your response EXACTLY like this (no other text):
+AMOUNT: [number]
+MERCHANT: [name]
+CATEGORY: [category]`,
                 inlineData: {
                   mimeType: 'image/jpeg',
                   data: imageBase64.split(',')[1] || imageBase64,
@@ -72,22 +70,24 @@ Be precise with the amount. If currency symbol is present, extract just the numb
       throw new Error('No response from Gemini. Check your API key and quota.');
     }
 
-    // Extract JSON from response (it might be wrapped in markdown code blocks)
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error('Gemini response:', content);
-      throw new Error('Gemini did not return valid JSON. Try a clearer bill image.');
-    }
+    console.log('Gemini response:', content);
 
-    const parsed = JSON.parse(jsonMatch[0]);
+    // Parse simple text format
+    const amountMatch = content.match(/AMOUNT:\s*([\d.]+)/i);
+    const merchantMatch = content.match(/MERCHANT:\s*([^\n]+)/i);
+    const categoryMatch = content.match(/CATEGORY:\s*([^\n]+)/i);
+
+    const amount = amountMatch ? parseFloat(amountMatch[1]) : 0;
+    const merchant = merchantMatch ? merchantMatch[1].trim() : 'Unknown';
+    const category = categoryMatch ? categoryMatch[1].trim() : 'Others';
 
     return {
-      amount: parseFloat(parsed.amount) || 0,
-      merchant: parsed.merchant || 'Unknown',
-      category: parsed.category || 'Others',
-      date: parsed.date || new Date().toISOString().split('T')[0],
-      items: Array.isArray(parsed.items) ? parsed.items : [],
-      confidence: parsed.confidence || 0,
+      amount: amount || 0,
+      merchant: merchant || 'Unknown',
+      category: category || 'Others',
+      date: new Date().toISOString().split('T')[0],
+      items: [],
+      confidence: amount > 0 ? 85 : 30,
       rawText: content,
     };
   } catch (err) {
@@ -127,17 +127,15 @@ const extractWithClaude = async (
               },
               {
                 type: 'text',
-                text: `Analyze this receipt/bill image and extract the following information in JSON format:
-{
-  "amount": total amount as number,
-  "merchant": store/company name,
-  "category": best category (Food, Transport, Shopping, Entertainment, Utilities, Health, Income, Others),
-  "date": date in YYYY-MM-DD format (if visible, otherwise today),
-  "items": array of purchased items,
-  "confidence": confidence level 0-100
-}
+                text: `Look at this receipt/bill image and tell me:
+1. The total amount (just the number)
+2. Store/merchant name
+3. Best category (Food, Transport, Shopping, Entertainment, Utilities, Health, Income, Others)
 
-Be precise with the amount. If currency symbol is present, extract just the number. Return ONLY valid JSON.`,
+Format your response EXACTLY like this (no other text):
+AMOUNT: [number]
+MERCHANT: [name]
+CATEGORY: [category]`,
               },
             ],
           },
@@ -158,22 +156,24 @@ Be precise with the amount. If currency symbol is present, extract just the numb
       throw new Error('No response from Claude. Check your API key and billing.');
     }
 
-    // Extract JSON from response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error('Claude response:', content);
-      throw new Error('Claude did not return valid JSON. Try a clearer bill image.');
-    }
+    console.log('Claude response:', content);
 
-    const parsed = JSON.parse(jsonMatch[0]);
+    // Parse simple text format
+    const amountMatch = content.match(/AMOUNT:\s*([\d.]+)/i);
+    const merchantMatch = content.match(/MERCHANT:\s*([^\n]+)/i);
+    const categoryMatch = content.match(/CATEGORY:\s*([^\n]+)/i);
+
+    const amount = amountMatch ? parseFloat(amountMatch[1]) : 0;
+    const merchant = merchantMatch ? merchantMatch[1].trim() : 'Unknown';
+    const category = categoryMatch ? categoryMatch[1].trim() : 'Others';
 
     return {
-      amount: parseFloat(parsed.amount) || 0,
-      merchant: parsed.merchant || 'Unknown',
-      category: parsed.category || 'Others',
-      date: parsed.date || new Date().toISOString().split('T')[0],
-      items: Array.isArray(parsed.items) ? parsed.items : [],
-      confidence: parsed.confidence || 0,
+      amount: amount || 0,
+      merchant: merchant || 'Unknown',
+      category: category || 'Others',
+      date: new Date().toISOString().split('T')[0],
+      items: [],
+      confidence: amount > 0 ? 85 : 30,
       rawText: content,
     };
   } catch (err) {
