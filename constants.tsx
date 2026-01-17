@@ -46,13 +46,13 @@ export const CATEGORY_CONFIG: Record<Category, { color: string; icon: React.Reac
     icon: <Zap size={16} /> 
   },
   [Category.Health]: { 
-    color: 'text-red-600', 
-    bgColor: 'bg-red-100',
+    color: 'text-red-400', 
+    bgColor: 'bg-red-950/30',
     icon: <Activity size={16} /> 
   },
   [Category.Income]: { 
-    color: 'text-green-600', 
-    bgColor: 'bg-green-100',
+    color: 'text-emerald-400', 
+    bgColor: 'bg-emerald-950/30',
     icon: <PlusCircle size={16} /> 
   },
   [Category.Others]: { 
